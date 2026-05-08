@@ -518,12 +518,19 @@ body {
     <aside class="sidebar">
 
       <!-- 動作區 -->
-      <div class="sidebar-card" v-if="currentUser.role === 'admin'">
+      <div class="sidebar-card">
         <div class="sidebar-title">操作</div>
         <!-- 管理員：顯示前往後台按鈕 -->
-        <a href="admin.php"
+        <a v-if="currentUser.role === 'admin'" href="admin.php"
           style="display:block; text-decoration:none; margin-bottom:10px;">
           <el-button type="primary" style="width:100%;">⚙ 管理後台</el-button>
+        </a>
+        <!-- 所有人：個人資料 -->
+        <a href="profile.php"
+          style="display:block; text-decoration:none; margin-bottom:10px;">
+          <el-button style="width:100%; background:var(--bg-hover); border-color:var(--border); color:var(--text-sec);">
+            👤 個人資料
+          </el-button>
         </a>
         <el-button style="width:100%; background:var(--bg-hover); border-color:var(--border); color:var(--text-sec);" @click="fetchBooks">
           ↺ 重新整理

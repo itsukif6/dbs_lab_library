@@ -442,6 +442,7 @@ body {
           <div class="user-role">{{ currentUser.user_id }}</div>
         </div>
         <a href="index.php" class="view-link">📖 讀者視角</a>
+        <a href="profile.php" class="view-link">👤 個人資料</a>
         <el-button size="small" @click="handleLogout"
           style="background:var(--bg-hover);border-color:var(--border);color:var(--text-sec);">
           登出
@@ -481,12 +482,11 @@ body {
       <!-- 導覽 -->
       <div class="sidebar-card">
         <div class="sidebar-title">功能</div>
-        <div class="nav-item active">
+        <div class="nav-item" :class="{ active: activeTab === 'books' }" @click="activeTab = 'books'">
           <span class="nav-icon">📚</span> 書籍管理
         </div>
-        <div class="nav-item" style="opacity:0.4; cursor:not-allowed;">
+        <div class="nav-item" :class="{ active: activeTab === 'users' }" @click="switchToUsers">
           <span class="nav-icon">👥</span> 使用者管理
-          <span style="font-size:10px; margin-left:auto; color:var(--text-muted);">即將推出</span>
         </div>
       </div>
 
@@ -508,8 +508,8 @@ body {
       </div>
     </aside>
 
-    <!-- ===== Content ===== -->
-    <main>
+    <!-- ===== Books Tab ===== -->
+    <main v-show="activeTab === 'books'">
 
       <!-- Book Management Section -->
       <div class="section-card">
@@ -631,6 +631,86 @@ body {
         </div>
       </div>
     </main>
+
+    <!-- ===== Users Tab ===== -->
+    <main v-show="activeTab === 'users'">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            👥 使用者管理
+            <span class="section-count">共 {{ users.length }} 筆</span>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <el-input
+            v-model="userSearch"
+            placeholder="搜尋學號、姓名、Email…"
+            @keyup.enter="fetchUsers"
+            clearable @clear="fetchUsers"
+            style="width:320px"
+          >
+            <template #prefix><span style="color:var(--text-muted)">🔍</span></template>
+          </el-input>
+          <el-button @click="fetchUsers"
+            style="background:var(--bg-hover);border-color:var(--border);color:var(--text-sec);">
+            ↺ 重整
+          </el-button>
+        </div>
+
+        <!-- Table -->
+        <div v-if="usersLoading" class="loading-wrap">
+          <div class="spinner"></div><span>載入中…</span>
+        </div>
+
+        <el-table v-else :data="users" style="width:100%" row-key="user_id">
+          <el-table-column prop="user_id" label="學號" width="130" />
+          <el-table-column prop="name" label="姓名" width="110" />
+          <el-table-column prop="email" label="Email" min-width="200" />
+          <el-table-column label="角色" width="100">
+            <template #default="{ row }">
+              <span v-if="row.role === 'admin'"
+                style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:12px;background:var(--gold-glow);color:var(--gold);border:1px solid var(--gold-dim);">
+                ⚙ 管理員
+              </span>
+              <span v-else
+                style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:12px;background:rgba(88,166,255,0.1);color:var(--blue);border:1px solid rgba(88,166,255,0.3);">
+                🎓 學生
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="借閱中" width="80">
+            <template #default="{ row }">
+              <span :style="row.borrow_count > 0 ? 'color:var(--red)' : 'color:var(--text-muted)'">
+                {{ row.borrow_count }} 本
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="200" fixed="right">
+            <template #default="{ row }">
+              <div class="action-row">
+                <el-button type="primary" size="small" @click="openUserEditDialog(row)">編輯</el-button>
+                <el-popconfirm
+                  :title="`確定將 ${row.name} 的密碼重置為學號？`"
+                  confirm-button-text="確定重置"
+                  cancel-button-text="取消"
+                  @confirm="resetUserPassword(row)"
+                >
+                  <template #reference>
+                    <el-button
+                      type="warning" size="small"
+                      :disabled="row.user_id === currentUser.user_id"
+                      :title="row.user_id === currentUser.user_id ? '不可重置自己的密碼' : ''"
+                    >還原密碼</el-button>
+                  </template>
+                </el-popconfirm>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </main>
     <aside class="sidebar-right">
       <div class="sidebar-card">
         <div class="sidebar-title">分類目錄</div>
@@ -730,6 +810,29 @@ body {
     </template>
   </el-dialog>
 
+  <!-- ===== Dialog: 編輯使用者（管理員）===== -->
+  <el-dialog v-model="userEditDialog.visible" title="編輯使用者資料" width="460px" destroy-on-close>
+    <div style="margin-bottom:20px; padding:14px 16px; background:var(--bg-deep); border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; gap:14px;">
+      <div style="width:44px;height:44px;border-radius:50%;background:var(--gold-glow);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:22px;">👤</div>
+      <div>
+        <div style="font-family:'Playfair Display',serif; font-size:15px;">{{ userEditDialog.form.name }}</div>
+        <div style="font-size:12px; color:var(--text-muted);">學號：{{ userEditDialog.form.user_id }}</div>
+      </div>
+    </div>
+    <el-form :model="userEditDialog.form" :rules="userEditDialog.rules" ref="userEditFormRef" label-width="80px">
+      <el-form-item label="姓名" prop="name">
+        <el-input v-model="userEditDialog.form.name" placeholder="請輸入姓名" maxlength="10" />
+      </el-form-item>
+      <el-form-item label="Email" prop="email">
+        <el-input v-model="userEditDialog.form.email" placeholder="請輸入 Email" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="userEditDialog.visible = false">取消</el-button>
+      <el-button type="primary" :loading="userEditDialog.loading" @click="submitUserEdit">儲存變更</el-button>
+    </template>
+  </el-dialog>
+
 </div><!-- #app -->
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
@@ -739,6 +842,9 @@ const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
   setup() {
+    // ===== Tab =====
+    const activeTab = ref('books');
+
     // ===== Auth State =====
     const currentUser = ref({ user_id: '', name: '', role: '' });
 
@@ -765,6 +871,12 @@ createApp({
 
     const addFormRef  = ref(null);
     const editFormRef = ref(null);
+
+    // ===== Users State =====
+    const users        = ref([]);
+    const usersLoading = ref(false);
+    const userSearch   = ref('');
+    const userEditFormRef = ref(null);
 
     // 1. 改用 ref 來儲存獨立的統計資料，不受篩選影響
     const stats = ref({ total: 0, available: 0, borrowed: 0 });
@@ -987,6 +1099,73 @@ createApp({
       } catch (e) { if (e !== 'cancel') ElementPlus.ElMessage.error('還書失敗'); }
     }
 
+    // ===== Users Functions =====
+    async function fetchUsers() {
+      usersLoading.value = true;
+      const p = new URLSearchParams();
+      if (userSearch.value) p.set('search', userSearch.value);
+      try {
+        const res = await api(`api/admin_get_users.php?${p}`);
+        if (res.success) users.value = res.data ?? [];
+        else ElementPlus.ElMessage.error(res.message);
+      } catch { ElementPlus.ElMessage.error('載入使用者失敗'); }
+      finally { usersLoading.value = false; }
+    }
+
+    function switchToUsers() {
+      activeTab.value = 'users';
+      if (users.value.length === 0) fetchUsers();
+    }
+
+    // ===== User Edit Dialog =====
+    const userEditDialog = ref({
+      visible: false, loading: false,
+      form: { user_id: '', name: '', email: '' },
+      rules: {
+        name:  [{ required: true, message: '請輸入姓名', trigger: 'blur' },
+                { max: 10, message: '姓名不可超過 10 個字', trigger: 'blur' }],
+        email: [{ required: true, message: '請輸入 Email', trigger: 'blur' },
+                { type: 'email', message: 'Email 格式錯誤', trigger: 'blur' }],
+      }
+    });
+
+    function openUserEditDialog(row) {
+      userEditDialog.value.form = { user_id: row.user_id, name: row.name, email: row.email };
+      userEditDialog.value.visible = true;
+    }
+
+    async function submitUserEdit() {
+      try { await userEditFormRef.value.validate(); } catch { return; }
+      userEditDialog.value.loading = true;
+      try {
+        const res = await api('api/admin_update_user.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userEditDialog.value.form),
+        });
+        if (res.success) {
+          ElementPlus.ElMessage.success(res.message);
+          userEditDialog.value.visible = false;
+          fetchUsers();
+        } else {
+          ElementPlus.ElMessage.error(res.message);
+        }
+      } catch { ElementPlus.ElMessage.error('更新失敗'); }
+      finally { userEditDialog.value.loading = false; }
+    }
+
+    async function resetUserPassword(row) {
+      try {
+        const res = await api('api/admin_reset_password.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: row.user_id }),
+        });
+        if (res.success) ElementPlus.ElMessage.success(res.message);
+        else ElementPlus.ElMessage.error(res.message);
+      } catch { ElementPlus.ElMessage.error('操作失敗'); }
+    }
+
     // ===== Init =====
     onMounted(async () => {
       await checkAuth();
@@ -996,7 +1175,7 @@ createApp({
     });
 
     return {
-      currentUser, books, categories, loading,
+      activeTab, currentUser, books, categories, loading,
       currentPage, pageSize, paginatedBooks,
       searchText, filterStatus, filterCategory,
       stats, statusFilters,
@@ -1006,6 +1185,11 @@ createApp({
       deleteBook, returnBook,
       expandedMains, toggleCategory, getParentId,
       handleLogout, fetchBooks, resetFilters,
+      // Users
+      users, usersLoading, userSearch,
+      userEditFormRef, userEditDialog,
+      fetchUsers, switchToUsers,
+      openUserEditDialog, submitUserEdit, resetUserPassword,
     };
   }
 }).use(ElementPlus).mount('#app');
