@@ -1,0 +1,10 @@
+{
+  "name": "dbs/lab-library",
+  "description": "圖書館管理系統",
+  "require": {
+    "phpmailer/phpmailer": "^6.9"
+  },
+  "config": {
+    "vendor-dir": "vendor"
+  }
+}
