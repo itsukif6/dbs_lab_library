@@ -40,6 +40,13 @@
 /* ===== Reset & Base ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ===== 徹底防止整個網頁產生左右捲軸 ===== */
+html, body {
+  overflow-x: hidden; /* 隱藏超出螢幕寬度的部分 */
+  width: 100%;
+  max-width: 100vw;
+}
+
 body {
   background: var(--bg-deep);
   color: var(--text-primary);
@@ -113,6 +120,12 @@ body {
   grid-template-columns: 260px 1fr;
   gap: 28px;
   justify-content: center;
+}
+
+/* ===== 解決中型螢幕下，Grid 佈局被大表格撐破的問題 ===== */
+main, .content-area, .settings-area {
+  min-width: 0; /* ❗極度重要：強迫區塊聽從 Grid 的分配，不能無限撐大 */
+  width: 100%;
 }
 
 /* ===== Sidebar ===== */
@@ -254,6 +267,24 @@ body {
 }
 .el-table__empty-block { 
   background-color: transparent !important; 
+}
+
+/* ===== 強制右側固定欄位「永遠」保持實底色，取消 Hover 變色 ===== */
+
+/* 1. 讓固定欄位的表頭 (th) 和內容 (td) 永遠是卡片底色 */
+.el-table th.el-table-fixed-column--right,
+.el-table td.el-table-fixed-column--right {
+  background-color: var(--bg-card) !important;
+}
+
+/* 2. 拔除 Hover 效果：就算滑鼠停在這行，這一格依然維持原色，不跟著亮起來 */
+.el-table tbody tr:hover > td.el-table-fixed-column--right {
+  background-color: var(--bg-card) !important;
+}
+
+/* 3. 補齊右上方表頭可能出現的縫隙 */
+.el-table__fixed-right-patch {
+  background-color: var(--bg-card) !important;
 }
 
 /* ===== 徹底覆蓋 Input 輸入框與 Select 下拉選單預設樣式 ===== */
@@ -469,6 +500,80 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 .main-layout { animation: fadeUp 0.5s ease both; }
+
+/* =====================================================
+   📱 終極 RWD 響應式設計 (針對側邊欄與表格優化)
+   ===================================================== */
+@media (max-width: 1024px) {
+  /* 1. 整個版面改為「單欄垂直排列」，解除 Grid 的硬性寬度限制 */
+  .main-layout, .page-wrap {
+    display: flex !important;
+    flex-direction: column;
+    padding: 20px 15px !important;
+    gap: 20px;
+  }
+
+  /* 2. 中間主要內容區塊滿版，優先顯示在上方 (把 order 設為 -1) */
+  main, .content-area, .settings-area {
+    order: -1; 
+    width: 100% !important;
+    min-width: 0; /* ❗極度重要：防止 flex 子元素撐破父容器 */
+  }
+
+  /* 3. 側邊欄 (左欄與右欄) 滿版，解除固定定位，自動排在表格下方 */
+  .sidebar, .sidebar-right, .profile-panel {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 4. 表格卡片設定橫向捲軸 (X軸滾動) */
+  .section-card, .table-card {
+    width: 100%;
+    /* 讓外層卡片不超出螢幕，內部資料超出時產生捲軸 */
+    max-width: calc(100vw - 30px) !important;
+    overflow-x: auto !important; 
+    -webkit-overflow-scrolling: touch; /* 讓手機滑動更順暢 */
+  }
+
+  /* 強制 Element Plus 表格在手機上不會亂縮水，保持資料可讀性並允許滑動 */
+  .el-table {
+    width: 100% !important;
+  }
+  .el-table__body-wrapper,
+  .el-table__header-wrapper {
+    overflow-x: auto !important;
+  }
+
+  /* 5. 頂部搜尋列與工具列的輸入框與按鈕換行，變為滿版 */
+  .toolbar, .search-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    padding: 15px !important;
+  }
+  .toolbar .el-input, .toolbar .el-select,
+  .search-bar .el-input, .search-bar .el-select {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 10px;
+  }
+  .toolbar .el-button, .search-bar .el-button {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-bottom: 5px;
+  }
+  
+  /* 6. 頂部 Header 微調，允許按鈕換行 */
+  .site-header { padding: 0 15px !important; height: auto !important; }
+  .header-inner {
+    flex-direction: column;
+    height: auto !important;
+    padding: 15px 0;
+    gap: 15px;
+  }
+  .header-right { flex-wrap: wrap; justify-content: center; width: 100%; }
+  .header-stats { display: none; } /* 隱藏頂部的統計數字，節省手機螢幕高度 */
+}
 </style>
 </head>
 <body>
@@ -607,7 +712,7 @@ body {
           @keyup.enter="fetchBooks"
           clearable
           @clear="fetchBooks"
-          style="width: 640px;"
+          style="width: 540px;"
         >
           <template #prefix><span style="color:var(--text-muted)">🔍</span></template>
         </el-input>

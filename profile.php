@@ -177,6 +177,15 @@ body {
 .el-input__inner { color: var(--text-primary) !important; font-family: 'Noto Serif TC', serif; }
 .el-input__prefix-inner { color: var(--text-muted) !important; }
 
+/* 覆蓋輸入框的字數統計 (3/10) 樣式 */
+.el-input__count {
+  background: transparent !important;
+}
+.el-input__count-inner {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+}
+
 .el-button--primary {
   background: var(--gold) !important; border-color: var(--gold) !important;
   color: #0d1117 !important; font-family: 'Noto Serif TC', serif; font-weight: 500;
@@ -203,6 +212,76 @@ body {
   margin-bottom: 4px;
 }
 .page-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+
+/* =====================================================
+   📱 RWD 響應式設計 (手機與平板適應)
+   ===================================================== */
+@media (max-width: 1024px) {
+  /* 1. 整個版面改為「單欄垂直排列」 */
+  .main-layout, .page-wrap {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 15px; /* 縮小左右邊界 */
+    gap: 20px;
+  }
+  
+  /* 2. 讓主要內容 (表格區) 自動排到最上面，不用先滑過一堆側邊欄 */
+  main, .content-area, .settings-area {
+    order: -1; 
+    width: 100%;
+    min-width: 0; /* ❗重要：防止子元素撐破父元素 */
+  }
+  
+  /* 3. 側邊欄取消固定定位，改為滿版寬度往下排 */
+  .sidebar, .sidebar-right, .profile-panel {
+    position: static;
+    width: 100%;
+  }
+
+  /* 4. 頂部導覽列 (Header) 放開限制，允許按鈕換行排列 */
+  .site-header { padding: 0 15px; height: auto; }
+  .header-inner {
+    flex-direction: column; /* 讓 Logo 和按鈕上下分開 */
+    height: auto;
+    padding: 15px 0;
+    gap: 16px;
+  }
+  .header-right {
+    flex-wrap: wrap; /* 允許按鈕換行，就不會擠成直的 */
+    justify-content: center;
+    width: 100%;
+  }
+  .header-stats { display: none; } /* 手機版上方空間不夠，隱藏頂部統計，看側邊欄就好 */
+
+  /* 5. 搜尋列 (Toolbar) 所有輸入框改成 100% 滿版，按鈕往下疊 */
+  .toolbar, .search-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    padding: 15px;
+  }
+  .toolbar .el-input, .toolbar .el-select,
+  .search-bar .el-input, .search-bar .el-select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .toolbar .el-button, .search-bar .el-button {
+    width: 100%;
+    margin-left: 0 !important;
+    margin-top: 5px;
+  }
+
+  /* 6. 表格區域卡片允許橫向滾動 (手指可以左右滑動看表格內容) */
+  .section-card, .table-card {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* 7. 所有彈出視窗 (Dialog) 在手機上變成滿版，避免被切掉 */
+  .el-dialog {
+    width: 95% !important;
+    margin: 20px auto !important;
+  }
+}
 </style>
 </head>
 <body>
