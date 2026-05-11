@@ -83,15 +83,17 @@ body {
 
 /* ===== Layout ===== */
 .main-layout {
-  max-width: 1500px; /* 從 1400px 調大一點點，容納三欄 */
+  max-width: 1500px;
   margin: 0 auto;
   padding: 32px 40px;
   display: grid;
-  /* 原本是 240px 1fr，現在改成: 左邊導覽(240px) | 中間主畫面(1fr) | 右邊分類(260px) */
   grid-template-columns: 240px 1fr 260px;
   gap: 28px;
   animation: fadeUp 0.4s ease both;
   justify-content: center;
+}
+.main-layout.no-right-sidebar {
+  grid-template-columns: 240px 1fr;
 }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
@@ -215,10 +217,14 @@ body {
   padding: 3px 10px; border-radius: 20px;
 }
 
+/* main {
+  min-width: 0;
+  width: 100%;
+} */
+
 /* Toolbar */
 .toolbar {
   padding: 16px 24px;
-  width: 1265px;
   border-bottom: 1px solid var(--border-light);
   display: flex; gap: 12px; align-items: center;
   flex-wrap: wrap;
@@ -452,7 +458,7 @@ body {
   </header>
 
   <!-- ===== Main Layout ===== -->
-  <div class="main-layout">
+  <div class="main-layout" :class="{ 'no-right-sidebar': activeTab === 'users' }">
 
     <!-- ===== Sidebar ===== -->
     <aside class="sidebar">
@@ -491,7 +497,7 @@ body {
       </div>
 
       <!-- 篩選 -->
-      <div class="sidebar-card">
+      <div class="sidebar-card" v-if="activeTab === 'books'">
         <div class="sidebar-title">篩選狀態</div>
         <div
           v-for="f in statusFilters" :key="f.value"
@@ -563,7 +569,7 @@ body {
         <el-table v-else :data="paginatedBooks" style="width:100%" row-key="book_id">
           <el-table-column prop="book_id" label="ISBN" width="150"></el-table-column>
           
-          <el-table-column label="書名" width="380">
+          <el-table-column label="書名" min-width="380">
             <template #default="{ row }">
               <div>{{ row.title }}</div>
               <div class="borrower-sub" v-if="row.status == 1 && row.borrower_name">
@@ -572,7 +578,7 @@ body {
             </template>
           </el-table-column>
           
-          <el-table-column prop="keyword" label="關鍵字" width="200">
+          <el-table-column prop="keyword" label="關鍵字" min-width="200">
             <template #default="{ row }">
               <span style="color:var(--text-muted); font-size:12px;">{{ row.keyword || '—' }}</span>
             </template>
@@ -633,7 +639,7 @@ body {
     </main>
 
     <!-- ===== Users Tab ===== -->
-    <main v-show="activeTab === 'users'">
+    <main v-if="activeTab === 'users'">
       <div class="section-card">
         <div class="section-header">
           <div class="section-title">
@@ -665,9 +671,9 @@ body {
         </div>
 
         <el-table v-else :data="users" style="width:100%" row-key="user_id">
-          <el-table-column prop="user_id" label="學號" width="130" />
-          <el-table-column prop="name" label="姓名" width="110" />
-          <el-table-column prop="email" label="Email" min-width="200" />
+          <el-table-column prop="user_id" label="學號" width="130"></el-table-column>
+          <el-table-column prop="name" label="姓名" width="110"></el-table-column>
+          <el-table-column prop="email" label="Email" min-width="200"></el-table-column>
           <el-table-column label="角色" width="100">
             <template #default="{ row }">
               <span v-if="row.role === 'admin'"
@@ -687,7 +693,7 @@ body {
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column label="操作" width="200">
             <template #default="{ row }">
               <div class="action-row">
                 <el-button type="primary" size="small" @click="openUserEditDialog(row)">編輯</el-button>
@@ -699,7 +705,7 @@ body {
                 >
                   <template #reference>
                     <el-button
-                      type="warning" size="small"
+                      type="danger" size="small"
                       :disabled="row.user_id === currentUser.user_id"
                       :title="row.user_id === currentUser.user_id ? '不可重置自己的密碼' : ''"
                     >還原密碼</el-button>
@@ -711,7 +717,7 @@ body {
         </el-table>
       </div>
     </main>
-    <aside class="sidebar-right">
+    <aside class="sidebar-right" v-if="activeTab === 'books'">
       <div class="sidebar-card">
         <div class="sidebar-title">分類目錄</div>
         
