@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2026-05-08 12:03:24
+-- 產生時間： 2026-05-27 08:44:26
 -- 伺服器版本： 10.4.32-MariaDB
 -- PHP 版本： 8.2.12
 
@@ -42,7 +42,7 @@ CREATE TABLE `book` (
 
 INSERT INTO `book` (`book_id`, `title`, `author`, `category_id`, `status`, `keyword`) VALUES
 ('9781119586166', 'Operating System Concepts, 10/e (IE-Paperback)', 'Abraham Silberschatz , Greg Gagne , Peter Baer Galvin', '312', 0, ''),
-('9786267889213', 'AI 時代一定要會 - 精通 Markdown 語法和 LLM 順暢溝通', '畢小朋', '312', 0, 'LLM'),
+('9786267889213', 'AI 時代一定要會 - 精通 Markdown 語法和 LLM 順暢溝通', '畢小朋', '312', 1, 'LLM'),
 ('9789861000001', '深入淺出 Kotlin', 'Dawn Griffiths', '312', 0, 'Kotlin,程式語言'),
 ('9789861000002', 'Kotlin 權威指南', 'Dmitry Jemerov', '312', 0, 'Kotlin,Java'),
 ('9789861000003', 'Android 實戰開發：使用 Kotlin', '林信良', '312', 0, 'Android,Kotlin,Mobile'),
@@ -368,6 +368,7 @@ CREATE TABLE `borrow` (
 INSERT INTO `borrow` (`borrow_id`, `user_id`, `book_id`, `borrow_date`, `due_date`, `return_date`) VALUES
 ('2dca9e756d754f018eab26711799b777', 'A000000001', '9789861000060', '2026-05-08', '2026-05-22', NULL),
 ('372a696746d940a18d42bb27ea0727f8', 'A000000001', '9789861000048', '2026-05-08', '2026-05-22', '2026-05-08'),
+('4532c89236ba495a81e1d06c6ab501cf', 'M143040001', '9786267889213', '2026-05-11', '2026-05-25', NULL),
 ('b13a85fe659e46bdad9c60dfe8812e07', 'M143040000', '9789861000048', '2026-05-08', '2026-05-22', NULL);
 
 -- --------------------------------------------------------
@@ -1324,6 +1325,7 @@ INSERT INTO `notification` (`notification_id`, `user_id`, `type_id`, `message`, 
 ('08f86fa2ba1d4bb3ab5c440e0e29e473', 'M143040000', 'c710a7074a9711f1b452d8bbc14df726', '您借閱的《3T 1H MRS 代謝物定量技術》有其他同學 蔡岳哲 希望借閱，請盡速歸還！', '2026-05-08 17:52:43'),
 ('0a30e8c4093c47338885a3b65bad81bb', 'M143040001', 'c710bffe4a9711f1b452d8bbc14df727', '歡迎 蔡岳哲 加入圖書館系統！', '2026-05-08 17:31:53'),
 ('4fb6a6f213564e158106219d107489a8', 'M143040001', 'c710bffe4a9711f1b452d8bbc14df726', '新書上架推薦：《Ollama 本地 AI 全方位攻略：命令列功能、五大主題測試、RAG、Vibe Coding、MCP，一本搞定所有實戰應用》已經可以借閱囉！', '2026-05-08 17:55:09'),
+('6243949ff06d4a85a1201bc57dbf5fd8', 'M143040001', 'c710a7074a9711f1b452d8bbc14df726', '您借閱的《AI 時代一定要會 - 精通 Markdown 語法和 LLM 順暢溝通》有其他同學希望借閱，請盡速歸還！', '2026-05-11 12:37:56'),
 ('b7eec30fade44b77b337c00668ba0f70', 'M143040000', 'c710bffe4a9711f1b452d8bbc14df726', '新書上架推薦：《Ollama 本地 AI 全方位攻略：命令列功能、五大主題測試、RAG、Vibe Coding、MCP，一本搞定所有實戰應用》已經可以借閱囉！', '2026-05-08 17:55:05');
 
 -- --------------------------------------------------------
@@ -1368,7 +1370,7 @@ CREATE TABLE `user` (
 INSERT INTO `user` (`user_id`, `name`, `email`, `password`, `role`) VALUES
 ('A000000001', '管理員', 'admin@lib.edu', 'admin1234', 'admin'),
 ('M143040000', '測試', 'chatbotnsysucse@gmail.com', '123456', 'student'),
-('M143040001', '蔡岳哲', 'm143040001@g-mail.nsysu.edu.tw', '$2y$10$9zwiZO6g17ShpBoCZs1CKesEIm/rwyyUvmkL5ynH3IwE8WQrvWgaG', 'student');
+('M143040001', '王曉明', 'm143040001@g-mail.nsysu.edu.tw', '$2y$10$9zwiZO6g17ShpBoCZs1CKesEIm/rwyyUvmkL5ynH3IwE8WQrvWgaG', 'student');
 
 --
 -- 已傾印資料表的索引
